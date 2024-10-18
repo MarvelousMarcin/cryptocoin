@@ -1,16 +1,12 @@
 import express from "express";
 import * as bodyParser from "body-parser";
-import { connectToPeers, getSockets, initP2PServer } from "./p2p";
+import { broadcast, connectToPeer, getSockets, initP2PServer } from "./p2p";
 
 const httpPort: number = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort: number = parseInt(process.env.P2P_PORT) || 6001;
 
 const app = express();
 app.use(bodyParser.json());
-
-app.get("/", (req, res) => {
-  res.send("hey");
-});
 
 app.get("/api/peers", (req, res) => {
   res.send(
@@ -20,8 +16,13 @@ app.get("/api/peers", (req, res) => {
   );
 });
 
+app.post("/api/sendToPeers", (req, res) => {
+  broadcast("hey guys");
+  res.send();
+});
+
 app.post("/api/addPeer", (req, res) => {
-  connectToPeers(req.body.peer);
+  connectToPeer(req.body.peer);
   res.send();
 });
 

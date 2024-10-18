@@ -5,7 +5,7 @@ const sockets: WebSocket[] = [];
 export const initP2PServer = (p2pPort: number) => {
   const server: Server = new WebSocket.Server({ port: p2pPort });
   server.on("connection", (ws: WebSocket) => {
-    initConnection(ws);
+    console.log("Node has joined!!");
     communicationHandler(ws);
     closeAndErrorHandler(ws);
   });
@@ -33,7 +33,14 @@ const initConnection = (ws: WebSocket) => {
   sockets.push(ws);
 };
 
-export const connectToPeers = (newPeer: string): void => {
+export const connectToPeer = (newPeer: string): void => {
+  // Check if peer is not already connected
+  if (
+    sockets.find((socket) => newPeer.indexOf(socket._socket.remotePort) !== -1)
+  ) {
+    console.log("Already connected with this peer");
+    return;
+  }
   const ws: WebSocket = new WebSocket(newPeer);
   ws.on("open", () => {
     initConnection(ws);
@@ -42,3 +49,9 @@ export const connectToPeers = (newPeer: string): void => {
     console.log("connection failed");
   });
 };
+
+export const broadcast = (message) =>
+  sockets.forEach((socket) => sendMessage(socket, message));
+
+const sendMessage = (ws: WebSocket, message) =>
+  ws.send(JSON.stringify(message));
