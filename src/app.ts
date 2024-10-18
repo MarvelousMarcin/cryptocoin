@@ -22,7 +22,7 @@ app.post("/api/sendToPeers", (req, res) => {
 });
 
 app.post("/api/addPeer", (req, res) => {
-  connectToPeer(req.body.peer);
+  connectToPeer(req.body.peer, p2pPort);
   res.send();
 });
 
