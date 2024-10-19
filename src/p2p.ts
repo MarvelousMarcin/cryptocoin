@@ -36,7 +36,7 @@ const communicationHandler = (ws: WebSocket, p2pPort: number) => {
   ws.on("message", (data: string) => {
     const message: Message = JSON.parse(data);
     if (message.type == "REVERSE_CONNECTION") {
-      connectToPeer(message.data, p2pPort);
+      connectToPeer(message.data, p2pPort, true);
     }
     if (message.type == "BLOCKCHAIN") {
       // Check if this node recived message with this id
@@ -54,7 +54,11 @@ const initConnection = (ws: WebSocket) => {
   sockets.push(ws);
 };
 
-export const connectToPeer = (newPeer: string, p2pPort: number): void => {
+export const connectToPeer = (
+  newPeer: string,
+  p2pPort: number,
+  oneSide: boolean = false
+): void => {
   // Check if peer is not already connected
   if (
     sockets.find((socket) => newPeer.indexOf(socket._socket.remotePort) !== -1)
@@ -65,12 +69,14 @@ export const connectToPeer = (newPeer: string, p2pPort: number): void => {
   const ws: WebSocket = new WebSocket(newPeer);
   ws.on("open", () => {
     initConnection(ws);
-    const newReversePeer = {
-      id: uuidv4(),
-      type: "REVERSE_CONNECTION",
-      data: `ws://localhost:${p2pPort}`,
-    };
-    ws.send(JSON.stringify(newReversePeer));
+    if (!oneSide) {
+      const newReversePeer = {
+        id: uuidv4(),
+        type: "REVERSE_CONNECTION",
+        data: `ws://localhost:${p2pPort}`,
+      };
+      ws.send(JSON.stringify(newReversePeer));
+    }
   });
   ws.on("error", () => {
     console.log("connection failed");
