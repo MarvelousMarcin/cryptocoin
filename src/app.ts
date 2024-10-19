@@ -25,7 +25,7 @@ const initHttpServer = (httpPort: number) => {
   });
 
   app.post("/api/sendToPeers", (req, res) => {
-    const mess = { type: "BLOCKCHAIN", id: uuidv4(), data: "Welcome message" };
+    const mess = { type: "BLOCKCHAIN", id: uuidv4(), data: req.body.message };
     messagesMap.set(mess.id, mess.data);
     broadcast(mess);
     res.send();
