@@ -1,6 +1,13 @@
 import express from "express";
 import * as bodyParser from "body-parser";
-import { broadcast, connectToPeer, getSockets, initP2PServer } from "./p2p";
+import {
+  broadcast,
+  connectToPeer,
+  getSockets,
+  initP2PServer,
+  messagesMap,
+} from "./p2p";
+import { v4 as uuidv4 } from "uuid";
 
 const httpPort: number = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort: number = parseInt(process.env.P2P_PORT) || 6001;
@@ -17,7 +24,9 @@ app.get("/api/peers", (req, res) => {
 });
 
 app.post("/api/sendToPeers", (req, res) => {
-  broadcast("hey guys");
+  const mess = { type: "BLOCKCHAIN", id: uuidv4(), data: "Welcome message" };
+  messagesMap.set(mess.id, mess.data);
+  broadcast(mess);
   res.send();
 });
 

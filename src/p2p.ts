@@ -1,10 +1,14 @@
 import { Server, WebSocket } from "ws";
+import { v4 as uuidv4 } from "uuid";
 
 const sockets: WebSocket[] = [];
+
+export const messagesMap = new Map<string, string>();
 
 type Message = {
   type: string;
   data: any;
+  id: string;
 };
 
 export const initP2PServer = (p2pPort: number) => {
@@ -34,6 +38,15 @@ const communicationHandler = (ws: WebSocket, p2pPort: number) => {
     if (message.type == "REVERSE_CONNECTION") {
       connectToPeer(message.data, p2pPort);
     }
+    if (message.type == "BLOCKCHAIN") {
+      // Check if this node recived message with this id
+      // If not set it and resend to other nodes
+      if (!messagesMap.has(message.id)) {
+        messagesMap.set(message.id, message.data);
+        broadcast(message);
+        console.log(message);
+      }
+    }
   });
 };
 
@@ -53,6 +66,7 @@ export const connectToPeer = (newPeer: string, p2pPort: number): void => {
   ws.on("open", () => {
     initConnection(ws);
     const newReversePeer = {
+      id: uuidv4(),
       type: "REVERSE_CONNECTION",
       data: `ws://localhost:${p2pPort}`,
     };
@@ -63,8 +77,9 @@ export const connectToPeer = (newPeer: string, p2pPort: number): void => {
   });
 };
 
-export const broadcast = (message) =>
+export const broadcast = (message: Message) =>
   sockets.forEach((socket) => sendMessage(socket, message));
 
-const sendMessage = (ws: WebSocket, message) =>
+const sendMessage = (ws: WebSocket, message: Message) => {
   ws.send(JSON.stringify(message));
+};
