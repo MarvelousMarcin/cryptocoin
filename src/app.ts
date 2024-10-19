@@ -8,6 +8,7 @@ import {
   messagesMap,
 } from "./p2p";
 import { v4 as uuidv4 } from "uuid";
+import { getOrCreateWallet } from "./wallet";
 
 const httpPort: number = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort: number = parseInt(process.env.P2P_PORT) || 6001;
@@ -34,6 +35,10 @@ const initHttpServer = (httpPort: number) => {
   app.post("/api/addPeer", (req, res) => {
     connectToPeer(req.body.peer, p2pPort);
     res.send();
+  });
+
+  app.post("/api/wallet",(req, res) => {
+    res.send(getOrCreateWallet(req.body.password));
   });
 
   app.listen(httpPort, () => {
