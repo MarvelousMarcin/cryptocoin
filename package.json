@@ -4,9 +4,9 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "node1": "tsc && HTTP_PORT=3001 P2P_PORT=6001 nodemon dist/app.js",
-    "node2": "tsc && HTTP_PORT=3002 P2P_PORT=6002 nodemon dist/app.js",
-    "node3": "tsc && HTTP_PORT=3003 P2P_PORT=6003 nodemon dist/app.js",
+    "node1": "tsc && HTTP_PORT=3001 P2P_PORT=6001 node dist/app.js",
+    "node2": "tsc && HTTP_PORT=3002 P2P_PORT=6002 node dist/app.js",
+    "node3": "tsc && HTTP_PORT=3003 P2P_PORT=6003 node dist/app.js",
     "lint": "eslint . --ext .ts"
   },
   "keywords": [],

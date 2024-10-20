@@ -9,6 +9,7 @@ import {
 } from "./p2p";
 import { v4 as uuidv4 } from "uuid";
 import { getOrCreateWallet } from "./wallet";
+import { MessageType } from "./classes/Message";
 
 const httpPort: number = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort: number = parseInt(process.env.P2P_PORT) || 6001;
@@ -26,7 +27,11 @@ const initHttpServer = (httpPort: number) => {
   });
 
   app.post("/api/sendToPeers", (req, res) => {
-    const mess = { type: "BLOCKCHAIN", id: uuidv4(), data: req.body.message };
+    const mess = {
+      type: MessageType.BLOCKCHAIN,
+      id: uuidv4(),
+      data: req.body.message,
+    };
     messagesMap.set(mess.id, mess.data);
     broadcast(mess);
     res.send();
@@ -37,7 +42,7 @@ const initHttpServer = (httpPort: number) => {
     res.send();
   });
 
-  app.post("/api/wallet",(req, res) => {
+  app.post("/api/wallet", (req, res) => {
     res.send(getOrCreateWallet(req.body.password));
   });
 

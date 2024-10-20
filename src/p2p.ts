@@ -1,15 +1,9 @@
 import { Server, WebSocket } from "ws";
 import { v4 as uuidv4 } from "uuid";
-
+import { Message, MessageType } from "./classes/Message";
 const sockets: WebSocket[] = [];
 
 export const messagesMap = new Map<string, string>();
-
-type Message = {
-  type: string;
-  data: any;
-  id: string;
-};
 
 export const initP2PServer = (p2pPort: number) => {
   const server: Server = new WebSocket.Server({ port: p2pPort });
@@ -35,10 +29,10 @@ const closeAndErrorHandler = (ws: WebSocket) => {
 const communicationHandler = (ws: WebSocket, p2pPort: number) => {
   ws.on("message", (data: string) => {
     const message: Message = JSON.parse(data);
-    if (message.type == "REVERSE_CONNECTION") {
+    if (message.type == MessageType.REVERSE_CONNECTION) {
       connectToPeer(message.data, p2pPort, true);
     }
-    if (message.type == "BLOCKCHAIN") {
+    if (message.type == MessageType.BLOCKCHAIN) {
       // Check if this node recived message with this id
       // If not set it and resend to other nodes
       if (!messagesMap.has(message.id)) {
@@ -72,7 +66,7 @@ export const connectToPeer = (
     if (!oneSide) {
       const newReversePeer = {
         id: uuidv4(),
-        type: "REVERSE_CONNECTION",
+        type: MessageType.REVERSE_CONNECTION,
         data: `ws://localhost:${p2pPort}`,
       };
       ws.send(JSON.stringify(newReversePeer));
