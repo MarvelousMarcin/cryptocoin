@@ -1,6 +1,11 @@
-@node1 = http://localhost:3001
+@node1 = http://localhost:3004
 @node2 = http://localhost:3002
 @node3 = http://localhost:3003
+
+@node4 = http://localhost:3004
+
+@node5 = http://localhost:3005
+
 
 ###
 GET {{node1}}/api/peers
@@ -12,7 +17,14 @@ GET {{node2}}/api/peers
 GET {{node3}}/api/peers
 
 ###
-POST {{node2}}/api/sendToPeers
+GET {{node4}}/api/peers
+
+###
+GET {{node5}}/api/peers
+
+
+###
+POST {{node5}}/api/sendToPeers
 Content-Type: application/json
 
 {

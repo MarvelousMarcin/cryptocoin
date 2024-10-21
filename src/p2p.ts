@@ -38,7 +38,7 @@ const communicationHandler = (ws: WebSocket, p2pPort: number) => {
       if (!messagesMap.has(message.id)) {
         messagesMap.set(message.id, message.data);
         broadcast(message);
-        console.log(message);
+        console.log(`GOT MESSAGE (${p2pPort})-->${JSON.stringify(message)})`);
       }
     }
   });

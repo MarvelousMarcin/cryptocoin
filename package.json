@@ -7,6 +7,9 @@
     "node1": "tsc && HTTP_PORT=3001 P2P_PORT=6001 node dist/app.js",
     "node2": "tsc && HTTP_PORT=3002 P2P_PORT=6002 node dist/app.js",
     "node3": "tsc && HTTP_PORT=3003 P2P_PORT=6003 node dist/app.js",
+    "node4": "tsc && HTTP_PORT=3004 P2P_PORT=6004 node dist/app.js",
+    "node5": "tsc && HTTP_PORT=3005 P2P_PORT=6005 node dist/app.js",
+    "all": "npm run node1 & npm run node2 & npm run node3 & npm run node4 & npm run node5",
     "lint": "eslint . --ext .ts"
   },
   "keywords": [],
