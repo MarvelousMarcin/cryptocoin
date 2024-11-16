@@ -1,4 +1,4 @@
-@node1 = http://localhost:3004
+@node1 = http://localhost:3001
 @node2 = http://localhost:3002
 @node3 = http://localhost:3003
 
@@ -33,6 +33,14 @@ Content-Type: application/json
 
 ###
 POST {{node1}}/api/wallet
+Content-Type: application/json
+
+{
+    "password": "password"
+}
+
+###
+POST {{node1}}/api/wallet/keys
 Content-Type: application/json
 
 {

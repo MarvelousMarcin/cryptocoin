@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { ec } from 'elliptic';
-import { Wallet } from './classes/Wallet';
-import { AES, enc } from 'crypto-js';
+import { KeyPair, Wallet } from './classes/Wallet';
+import { encrypt, decrypt } from './encryption';
 
 const walletLocation = 'wallets/wallet' + process.env.HTTP_PORT + '.enc';
 const EC = new ec('secp256k1');
@@ -12,31 +12,39 @@ export const getWallet = (): Wallet | null => {
   return wallet;
 }
 
-export const getOrCreateWallet = (password: string): Wallet | null => {
+export const addKey = (password: string): string => {
+  if (!existsSync(walletLocation)) {
+    return "Wallet not exist";
+  }
+  wallet = readAndDecryptWalletFile(password);
+  if (!wallet) {
+    return "Failed to read wallet";
+  }
+  wallet.keys.push(createKeyPair());
+  writeWalletToFile(password);
+  return "Key added successfully";
+}
+
+export const initWallet = (password: string): string => {
   if (existsSync(walletLocation)) {
-    wallet = readAndDecryptWalletFile(password)
+    wallet = readAndDecryptWalletFile(password);
+    return wallet ? "Wallet loaded successfully" : "Failed to read wallet"
   }
-  else {
-    wallet = initWallet();
-    writeWalletToFile(password);
-  }
-  console.log(wallet);
-  return wallet;
+  wallet = new Wallet(createKeyPair());
+  writeWalletToFile(password);
+  return "Wallet created successfully";
 }
 
 const readAndDecryptWalletFile = (password: string): Wallet | null => {
   try {
-    const encrypted = readFileSync(walletLocation, 'utf8');
-    const bytes = AES.decrypt(encrypted, password);
-    const originalText = bytes.toString(enc.Utf8);
-    const wallet: Wallet = JSON.parse(originalText);
-
-    if (wallet.version === 'v1.0') {
-      console.log('Wallet decrypted successfully.');
-      return wallet;
-    }
+    const encrypted = readFileSync(walletLocation);
+    const decrypted = decrypt(password, encrypted);
+    const wallet: Wallet = JSON.parse(decrypted);
+    console.log('Wallet decrypted successfully: ');
+    console.log(wallet)
+    return wallet;
   } catch (error) {
-    console.log('Failed to decrypt wallet. The password is incorrect.');
+    console.log('Failed to decrypt wallet, the password is incorrect');
     console.error(error.message);
     return null;
   }
@@ -45,24 +53,18 @@ const readAndDecryptWalletFile = (password: string): Wallet | null => {
 const writeWalletToFile = (password: string) => {
   try {
     const jsonWallet = JSON.stringify(wallet);
-    const encrypted = AES.encrypt(jsonWallet, password).toString();
+    const encrypted = encrypt(password, jsonWallet);
     writeFileSync(walletLocation, encrypted);
     console.log('Wallet encrypted and saved to: ' + walletLocation);
+    console.log(wallet)
   } catch (error) {
-    console.log('Something went wrong during saving wallet.');
+    console.log('Something went wrong during saving wallet');
     console.error(error.message);
     return null;
   }
 }
 
-const initWallet = (): Wallet => {
-  const keys = generateKeys();
-  const newWallet = new Wallet(keys[0], keys[1]);
-  newWallet.version = 'v1.0';
-  return newWallet;
-};
-
-const generateKeys = (): string[] => {
+const createKeyPair = (): KeyPair => {
   const keyPair = EC.genKeyPair();
-  return [keyPair.getPrivate('hex'), keyPair.getPublic('hex')];
+  return new KeyPair(keyPair.getPrivate('hex'), keyPair.getPublic('hex'));
 };

@@ -8,7 +8,7 @@ import {
   messagesMap,
 } from "./p2p";
 import { v4 as uuidv4 } from "uuid";
-import { getOrCreateWallet } from "./wallet";
+import { addKey, initWallet } from "./wallet";
 import { MessageType } from "./classes/Message";
 
 const httpPort: number = parseInt(process.env.HTTP_PORT) || 3001;
@@ -43,7 +43,11 @@ const initHttpServer = (httpPort: number) => {
   });
 
   app.post("/api/wallet", (req, res) => {
-    res.send(getOrCreateWallet(req.body.password));
+    res.send(initWallet(req.body.password));
+  });
+  
+  app.post("/api/wallet/keys", (req, res) => {
+    res.send(addKey(req.body.password));
   });
 
   app.listen(httpPort, () => {
