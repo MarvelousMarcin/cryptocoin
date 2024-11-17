@@ -1,6 +1,7 @@
 import { Server, WebSocket } from "ws";
 import { v4 as uuidv4 } from "uuid";
 import { Message, MessageType } from "./classes/Message";
+import { getLatestBlock } from "./blockchain";
 const sockets: WebSocket[] = [];
 
 export const messagesMap = new Map<string, string>();
@@ -83,3 +84,13 @@ export const broadcast = (message: Message) =>
 const sendMessage = (ws: WebSocket, message: Message) => {
   ws.send(JSON.stringify(message));
 };
+
+export const broadcastLatest = (): void => {
+  broadcast(responseLatestMsg());
+};
+
+const responseLatestMsg = (): Message => ({
+  type: MessageType.BLOCKCHAIN,
+  id: uuidv4(),
+  data: JSON.stringify([getLatestBlock()]),
+});
