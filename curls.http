@@ -46,3 +46,12 @@ Content-Type: application/json
 {
     "password": "password"
 }
+
+
+###
+POST {{node1}}/api/mine
+Content-Type: application/json
+
+{
+    "data": "test"
+}

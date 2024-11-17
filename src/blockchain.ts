@@ -1,5 +1,6 @@
 import { Block } from "./classes/Block";
 import { broadcastLatest } from "./p2p";
+import { SHA256 } from "crypto-js";
 
 const genesisBlock: Block = new Block(
   0,
@@ -19,8 +20,7 @@ const calculateHash = (
   previousHash: string,
   timestamp: number,
   data: string
-): string =>
-  CryptoJS.SHA256(index + previousHash + timestamp + data).toString();
+): string => SHA256(index + previousHash + timestamp + data).toString();
 
 const isValidBlockStructure = (block: Block): boolean => {
   return (
