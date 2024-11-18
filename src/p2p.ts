@@ -52,38 +52,27 @@ const communicationHandler = (ws: WebSocket) => {
       connectToPeer(message.data, serverP2pPort, true);
     }
     if (message.type == MessageType.LATEST_BLOCK) {
-      // console.log("Request of latest block - sending block:")
+      console.log("Request of latest block")
       sendMessage(ws, responseLatestMsg())
     }
     if (message.type == MessageType.QUERY_CHAIN) {
-      const senderPort = message.senderPort;
-      sockets
-        .find((socket) => {
-          const url = new URL(socket._url);
-          const port = url.port;
-          console.log(port);
-          console.log(senderPort);
-          console.log(port == senderPort);
-          return senderPort == port;
-        })
-        ?.send(
-          JSON.stringify({
-            type: MessageType.BLOCKCHAIN,
-            data: JSON.stringify(getBlockchain()),
-            id: uuidv4(),
-          })
-        );
+      //maybe broadcast?
+      console.log("Request of blockchain")
+      sendMessage(ws, {
+        type: MessageType.BLOCKCHAIN,
+        data: JSON.stringify(getBlockchain()),
+        id: uuidv4(),
+      });
     }
     if (message.type == MessageType.BLOCKCHAIN) {
       // Check if this node recived message with this id
       // If not set it and resend to other nodes
-      console.log('Got blockchain: ')
-      // console.log(message.data)
       if (!messagesMap.has(message.id)) {
         messagesMap.set(message.id, message.data);
 
         // validate given blockchain
         const receivedBlocks: Block[] = JSONToObject<Block[]>(message.data);
+        console.log('Got blockchain with length of : ' + receivedBlocks.length)
         console.log(receivedBlocks);
 
         if (receivedBlocks === null) {
@@ -106,15 +95,12 @@ const communicationHandler = (ws: WebSocket) => {
               broadcast(message);
             } else if (receivedBlocks.length == 1) {
               console.log("New peer need to query");
-              const peer = sockets[0];
               // Query chain from peer
-              peer.send(
-                JSON.stringify({
-                  type: MessageType.QUERY_CHAIN,
-                  data: null,
-                  senderPort: serverP2pPort,
-                })
-              );
+              sendMessage(ws, {
+                type: MessageType.QUERY_CHAIN,
+                data: null,
+                id: uuidv4(),
+              })
             } else {
               console.log("Replace chain");
               replaceChain(receivedBlocks);
@@ -166,8 +152,8 @@ export const broadcast = (message: Message) =>
   sockets.forEach((socket) => sendMessage(socket, message));
 
 const sendMessage = (ws: WebSocket, message: Message) => {
-  // console.log('Sending message:')
-  // console.log(message)
+  console.log('Sending message:')
+  console.log(message)
   ws.send(JSON.stringify(message));
 };
 
@@ -183,6 +169,6 @@ const responseLatestMsg = (): Message => ({
 
 const queryLatestBlockMsg = (): Message => ({
   type: MessageType.LATEST_BLOCK,
-  id: uuidv4(), 
+  id: uuidv4(),
   data: null
 });
