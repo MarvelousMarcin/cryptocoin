@@ -9,4 +9,5 @@ export enum MessageType {
   REVERSE_CONNECTION,
   BLOCKCHAIN,
   QUERY_CHAIN,
+  LATEST_BLOCK
 }
