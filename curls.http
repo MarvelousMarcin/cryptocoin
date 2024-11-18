@@ -24,6 +24,11 @@ GET {{node5}}/api/peers
 
 
 ###
+GET {{node1}}/api/blockchain
+
+
+
+###
 POST {{node5}}/api/sendToPeers
 Content-Type: application/json
 
@@ -49,7 +54,7 @@ Content-Type: application/json
 
 
 ###
-POST {{node1}}/api/mine
+POST {{node2}}/api/mine
 Content-Type: application/json
 
 {

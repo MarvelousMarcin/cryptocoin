@@ -6,7 +6,7 @@ const genesisBlock: Block = new Block(
   0,
   "6b88c087247aa2f07ee1c5956b8e1a9f4c7f892a70e324f1bb3d161e05ca107b",
   "",
-  Math.floor(Math.random() * 1000),
+  1345152122,
   "genesis block"
 );
 
@@ -22,7 +22,7 @@ const calculateHash = (
   data: string
 ): string => SHA256(index + previousHash + timestamp + data).toString();
 
-const isValidBlockStructure = (block: Block): boolean => {
+export const isValidBlockStructure = (block: Block): boolean => {
   return (
     typeof block.index === "number" &&
     typeof block.hash === "string" &&
@@ -35,7 +35,10 @@ const isValidBlockStructure = (block: Block): boolean => {
 const calculateHashForBlock = (block: Block): string =>
   calculateHash(block.index, block.previousHash, block.timestamp, block.data);
 
-const isValidNewBlock = (newBlock: Block, previousBlock: Block): boolean => {
+export const isValidNewBlock = (
+  newBlock: Block,
+  previousBlock: Block
+): boolean => {
   if (!isValidBlockStructure(newBlock)) {
     console.log("invalid structure");
     return false;
@@ -58,7 +61,7 @@ const isValidNewBlock = (newBlock: Block, previousBlock: Block): boolean => {
   return true;
 };
 
-const addBlock = (newBlock: Block) => {
+export const addBlock = (newBlock: Block) => {
   if (isValidNewBlock(newBlock, getLatestBlock())) {
     blockchain.push(newBlock);
   }
@@ -84,4 +87,35 @@ export const generateNextBlock = (blockData: string) => {
   addBlock(newBlock);
   broadcastLatest();
   return newBlock;
+};
+
+const isValidChain = (blockchainToValidate: Block[]): boolean => {
+  const isValidGenesis = (block: Block): boolean => {
+    return JSON.stringify(block) === JSON.stringify(genesisBlock);
+  };
+
+  if (!isValidGenesis(blockchainToValidate[0])) {
+    return false;
+  }
+
+  for (let i = 1; i < blockchainToValidate.length; i++) {
+    if (
+      !isValidNewBlock(blockchainToValidate[i], blockchainToValidate[i - 1])
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
+
+export const replaceChain = (newBlocks: Block[]) => {
+  if (isValidChain(newBlocks) && newBlocks.length > getBlockchain().length) {
+    console.log(
+      "Received blockchain is valid. Replacing current blockchain with received blockchain"
+    );
+    blockchain = newBlocks;
+    broadcastLatest();
+  } else {
+    console.log("Received blockchain invalid");
+  }
 };
