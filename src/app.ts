@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 import { addKey, initWallet } from "./wallet";
 import { MessageType } from "./classes/Message";
 import { Block } from "./classes/Block";
-import { generateNextBlock, getBlockchain } from "./blockchain";
+import { generateNextBlock, getBlockchainBinary } from "./blockchain";
 
 const httpPort: number = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort: number = parseInt(process.env.P2P_PORT) || 6001;
@@ -29,7 +29,7 @@ const initHttpServer = (httpPort: number) => {
   });
 
   app.get("/api/blockchain", (req, res) => {
-    res.send(getBlockchain());
+    res.send(getBlockchainBinary());
   });
 
   app.post("/api/sendToPeers", (req, res) => {

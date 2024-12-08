@@ -4,6 +4,9 @@ export class Block {
     public hash: string,
     public previousHash: string,
     public timestamp: number,
-    public data: string
+    public data: string,
+    public difficulty: number,
+    public nonce: number,
+    public hashBinary?: string
   ) {}
 }
