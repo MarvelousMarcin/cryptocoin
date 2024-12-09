@@ -37,7 +37,7 @@ Content-Type: application/json
 }
 
 ###
-POST {{node2}}/api/wallet
+POST {{node1}}/api/wallet
 Content-Type: application/json
 
 {
@@ -54,7 +54,7 @@ Content-Type: application/json
 
 
 ###
-POST {{node1}}/api/mine
+POST {{node3}}/api/mine
 Content-Type: application/json
 
 {
@@ -69,21 +69,21 @@ Content-Type: application/json
 
 
 ###
-POST {{node1}}/api/mineTransaction
+POST {{node3}}/api/mineTransaction
 Content-Type: application/json
 
 {
     "address": "04162c630a0db9a6438ae01f5a5d11e3a89245c6b5cf94ca5e7c552a6c170c9d7f5867897a0eb8974dc539b646d12a08c98349d0658074df10d19fa35c77070f80",
-    "amount": 10
+    "amount": 50
 }
 
 ###
-POST {{node1}}/api/sendTransaction
+POST {{node3}}/api/sendTransaction
 Content-Type: application/json
 
 {
-    "address": "04162c630a0db9a6438ae01f5a5d11e3a89245c6b5cf94ca5e7c552a6c170c9d7f5867897a0eb8974dc539b646d12a08c98349d0658074df10d19fa35c77070f80",
-    "amount": 5
+    "address": "04d932aeefcd77a0b21bb3be816bd6847250ab4b02013416c65b30b2addc141da133dc58294e6e463e13539d3cf1514ee2ad237c08a8912706dfe6fc1143ce447b",
+    "amount": 50
 }
 
 ###
