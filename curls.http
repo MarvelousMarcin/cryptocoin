@@ -24,7 +24,7 @@ GET {{node5}}/api/peers
 
 
 ###
-GET {{node2}}/api/blockchain
+GET {{node3}}/api/blockchain
 
 
 
@@ -37,7 +37,7 @@ Content-Type: application/json
 }
 
 ###
-POST {{node1}}/api/wallet
+POST {{node2}}/api/wallet
 Content-Type: application/json
 
 {
@@ -54,14 +54,14 @@ Content-Type: application/json
 
 
 ###
-POST {{node3}}/api/mine
+POST {{node2}}/api/mine
 Content-Type: application/json
 
 {
 }
 
 ###
-GET {{node2}}/api/balance
+GET {{node1}}/api/balance
 Content-Type: application/json
 
 {
@@ -87,5 +87,5 @@ Content-Type: application/json
 }
 
 ###
-GET {{node1}}/api/transactionPool
+GET {{node3}}/api/transactionPool
 Content-Type: application/json
