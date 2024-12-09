@@ -71,6 +71,9 @@ const communicationHandler = (ws: WebSocket) => {
       sendMessage(ws, responseLatestMsg());
     }
     if (message.type == MessageType.QUERY_CHAIN) {
+      sendMessage(ws, responseTransactionPoolMsg());
+    }
+    if (message.type == MessageType.QUERY_CHAIN) {
       //maybe broadcast?
       console.log("Request of blockchain");
       sendMessage(ws, {
@@ -104,51 +107,54 @@ const communicationHandler = (ws: WebSocket) => {
       }
     }
 
-    if (message.type == MessageType.BLOCKCHAIN) {
-      // Check if this node recived message with this id
-      // If not set it and resend to other nodes
-      if (!messagesMap.has(message.id)) {
-        messagesMap.set(message.id, message.data);
+    if (message.type == MessageType.BLOCKCHAIN)
+      if (message.type == MessageType.BLOCKCHAIN) {
+        // Check if this node recived message with this id
+        // If not set it and resend to other nodes
+        if (!messagesMap.has(message.id)) {
+          messagesMap.set(message.id, message.data);
 
-        // validate given blockchain
-        const receivedBlocks: Block[] = JSONToObject<Block[]>(message.data);
-        console.log("Got blockchain with length of : " + receivedBlocks.length);
-        console.log(receivedBlocks);
+          // validate given blockchain
+          const receivedBlocks: Block[] = JSONToObject<Block[]>(message.data);
+          console.log(
+            "Got blockchain with length of : " + receivedBlocks.length
+          );
+          console.log(receivedBlocks);
 
-        if (receivedBlocks === null) {
-          console.log("invalid blocks received:");
-          console.log(message.data);
-        } else {
-          // Validate recived blocks
+          if (receivedBlocks === null) {
+            console.log("invalid blocks received:");
+            console.log(message.data);
+          } else {
+            // Validate recived blocks
 
-          const newBlock = receivedBlocks[receivedBlocks.length - 1];
-          if (!isValidBlockStructure(newBlock)) {
-            console.log("Incorrect blok structure");
-          }
+            const newBlock = receivedBlocks[receivedBlocks.length - 1];
+            if (!isValidBlockStructure(newBlock)) {
+              console.log("Incorrect blok structure");
+            }
 
-          const ourLatest = getLatestBlock();
+            const ourLatest = getLatestBlock();
 
-          if (ourLatest.index < newBlock.index) {
-            if (ourLatest.hash === newBlock.previousHash) {
-              console.log("Add block to our chain");
-              addBlock(newBlock);
-              broadcast(message);
-            } else if (receivedBlocks.length == 1) {
-              console.log("New peer need to query");
-              // Query chain from peer
-              sendMessage(ws, {
-                type: MessageType.QUERY_CHAIN,
-                data: null,
-                id: uuidv4(),
-              });
-            } else {
-              console.log("Replace chain");
-              replaceChain(receivedBlocks);
+            if (ourLatest.index < newBlock.index) {
+              if (ourLatest.hash === newBlock.previousHash) {
+                console.log("Add block to our chain");
+                addBlock(newBlock);
+                broadcast(message);
+              } else if (receivedBlocks.length == 1) {
+                console.log("New peer need to query");
+                // Query chain from peer
+                sendMessage(ws, {
+                  type: MessageType.QUERY_CHAIN,
+                  data: null,
+                  id: uuidv4(),
+                });
+              } else {
+                console.log("Replace chain");
+                replaceChain(receivedBlocks);
+              }
             }
           }
         }
       }
-    }
   });
 };
 
@@ -157,6 +163,10 @@ const initConnection = (ws: WebSocket) => {
   communicationHandler(ws);
   closeAndErrorHandler(ws);
   sendMessage(ws, queryLatestBlockMsg());
+  // query transactions pool only some time after chain query
+  setTimeout(() => {
+    broadcast(queryTransactionPoolMsg());
+  }, 500);
 };
 
 export const connectToPeer = (
