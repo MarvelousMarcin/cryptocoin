@@ -24,7 +24,7 @@ GET {{node5}}/api/peers
 
 
 ###
-GET {{node1}}/api/blockchain
+GET {{node2}}/api/blockchain
 
 
 
@@ -37,7 +37,7 @@ Content-Type: application/json
 }
 
 ###
-POST {{node1}}/api/wallet
+POST {{node2}}/api/wallet
 Content-Type: application/json
 
 {
@@ -45,7 +45,7 @@ Content-Type: application/json
 }
 
 ###
-POST {{node1}}/api/wallet/keys
+POST {{node2}}/api/wallet/keys
 Content-Type: application/json
 
 {
@@ -58,5 +58,21 @@ POST {{node1}}/api/mine
 Content-Type: application/json
 
 {
-    "data": "mine"
+}
+
+###
+GET {{node1}}/api/balance
+Content-Type: application/json
+
+{
+}
+
+
+###
+POST {{node1}}/api/mineTransaction
+Content-Type: application/json
+
+{
+    "address": "04a0842c5b3553092381dff2b1baf106d708783b3a98a314674c18b35a3a918912df4a394a139d615e12d36067782faf3495daa9e5363eeeea32318b096fd20da0",
+    "amount": 20
 }
