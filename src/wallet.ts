@@ -152,7 +152,6 @@ export const createTransaction = (
   };
   const myUnspentTxOuts = filterTxPoolTxs(myUnspentTxOutsA, txPool);
 
-  // filter from unspentOutputs such inputs that are referenced in pool
   const { includedUnspentTxOuts, leftOverAmount } = findTxOutsForAmount(
     amount,
     myUnspentTxOuts

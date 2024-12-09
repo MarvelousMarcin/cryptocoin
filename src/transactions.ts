@@ -58,9 +58,15 @@ const findUnspentTxOut = (
   index: number,
   aUnspentTxOuts: UnspentTxOut[]
 ): UnspentTxOut => {
-  return aUnspentTxOuts.find(
+  const unspend = aUnspentTxOuts.find(
     (uTxO) => uTxO.txOutId === transactionId && uTxO.txOutIndex === index
   );
+
+  aUnspentTxOuts = aUnspentTxOuts.filter(
+    (uTxO) => uTxO.txOutId !== transactionId || uTxO.txOutIndex !== index
+  );
+
+  return unspend;
 };
 
 export const getTransactionId = (transaction: Transaction): string => {
