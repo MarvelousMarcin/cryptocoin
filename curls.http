@@ -45,7 +45,7 @@ Content-Type: application/json
 }
 
 ###
-POST {{node2}}/api/wallet/keys
+POST {{node1}}/api/wallet/keys
 Content-Type: application/json
 
 {
@@ -73,6 +73,19 @@ POST {{node1}}/api/mineTransaction
 Content-Type: application/json
 
 {
-    "address": "04a0842c5b3553092381dff2b1baf106d708783b3a98a314674c18b35a3a918912df4a394a139d615e12d36067782faf3495daa9e5363eeeea32318b096fd20da0",
-    "amount": 20
+    "address": "04162c630a0db9a6438ae01f5a5d11e3a89245c6b5cf94ca5e7c552a6c170c9d7f5867897a0eb8974dc539b646d12a08c98349d0658074df10d19fa35c77070f80",
+    "amount": 10
 }
+
+###
+POST {{node1}}/api/sendTransaction
+Content-Type: application/json
+
+{
+    "address": "04162c630a0db9a6438ae01f5a5d11e3a89245c6b5cf94ca5e7c552a6c170c9d7f5867897a0eb8974dc539b646d12a08c98349d0658074df10d19fa35c77070f80",
+    "amount": 100
+}
+
+###
+GET {{node1}}/api/transactionPool
+Content-Type: application/json

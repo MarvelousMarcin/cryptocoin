@@ -4,7 +4,7 @@ import { KeyPair, Wallet } from "./classes/Wallet";
 import { encrypt, decrypt } from "./encryption";
 import { Transaction, TxIn, TxOut, UnspentTxOut } from "./classes/Transaction";
 import { getPublicKey, getTransactionId, signTxIn } from "./transactions";
-import * as _ from "lodash";
+import _ from "lodash";
 
 const walletLocation = "wallets/wallet" + process.env.HTTP_PORT + ".enc";
 const EC = new ec("secp256k1");
@@ -116,13 +116,43 @@ export const createTransaction = (
   receiverAddress: string,
   amount: number,
   privateKey: string,
-  unspentTxOuts: UnspentTxOut[]
+  unspentTxOuts: UnspentTxOut[],
+  txPool: Transaction[]
 ): Transaction => {
+  console.log("txPool: %s", JSON.stringify(txPool));
   const myAddress: string = getPublicKey(privateKey);
-  const myUnspentTxOuts = unspentTxOuts.filter(
+  const myUnspentTxOutsA = unspentTxOuts.filter(
     (uTxO: UnspentTxOut) => uTxO.address === myAddress
   );
 
+  const filterTxPoolTxs = (
+    unspentTxOuts: UnspentTxOut[],
+    transactionPool: Transaction[]
+  ): UnspentTxOut[] => {
+    const txIns: TxIn[] = _(transactionPool)
+      .map((tx: Transaction) => tx.txIns)
+      .flatten()
+      .value();
+    const removable: UnspentTxOut[] = [];
+    for (const unspentTxOut of unspentTxOuts) {
+      const txIn = _.find(txIns, (aTxIn: TxIn) => {
+        return (
+          aTxIn.txOutIndex === unspentTxOut.txOutIndex &&
+          aTxIn.txOutId === unspentTxOut.txOutId
+        );
+      });
+
+      if (txIn === undefined) {
+      } else {
+        removable.push(unspentTxOut);
+      }
+    }
+
+    return _.without(unspentTxOuts, ...removable);
+  };
+  const myUnspentTxOuts = filterTxPoolTxs(myUnspentTxOutsA, txPool);
+
+  // filter from unspentOutputs such inputs that are referenced in pool
   const { includedUnspentTxOuts, leftOverAmount } = findTxOutsForAmount(
     amount,
     myUnspentTxOuts

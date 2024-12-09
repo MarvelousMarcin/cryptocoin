@@ -5,10 +5,13 @@ import {
   addBlock,
   getBlockchain,
   getLatestBlock,
+  handleReceivedTransaction,
   isValidBlockStructure,
   replaceChain,
 } from "./blockchain";
 import { Block } from "./classes/Block";
+import { getTransactionPool } from "./transactionPool";
+import { Transaction } from "./classes/Transaction";
 const sockets: WebSocket[] = [];
 let serverP2pPort = 0;
 
@@ -36,6 +39,18 @@ const closeAndErrorHandler = (ws: WebSocket) => {
   });
 };
 
+const queryTransactionPoolMsg = (): Message => ({
+  id: uuidv4(),
+  type: MessageType.QUERY_TRANSACTION_POOL,
+  data: null,
+});
+
+const responseTransactionPoolMsg = (): Message => ({
+  id: uuidv4(),
+  type: MessageType.RESPONSE_TRANSACTION_POOL,
+  data: JSON.stringify(getTransactionPool()),
+});
+
 const JSONToObject = <T>(data: string): T => {
   try {
     return JSON.parse(data);
@@ -52,18 +67,43 @@ const communicationHandler = (ws: WebSocket) => {
       connectToPeer(message.data, serverP2pPort, true);
     }
     if (message.type == MessageType.LATEST_BLOCK) {
-      console.log("Request of latest block")
-      sendMessage(ws, responseLatestMsg())
+      console.log("Request of latest block");
+      sendMessage(ws, responseLatestMsg());
     }
     if (message.type == MessageType.QUERY_CHAIN) {
       //maybe broadcast?
-      console.log("Request of blockchain")
+      console.log("Request of blockchain");
       sendMessage(ws, {
         type: MessageType.BLOCKCHAIN,
         data: JSON.stringify(getBlockchain()),
         id: uuidv4(),
       });
     }
+    if (message.type == MessageType.RESPONSE_TRANSACTION_POOL) {
+      if (!messagesMap.has(message.id)) {
+        messagesMap.set(message.id, message.data);
+        const receivedTransactions: Transaction[] = JSONToObject<Transaction[]>(
+          message.data
+        );
+        if (receivedTransactions === null) {
+          console.log(
+            "invalid transaction received: %s",
+            JSON.stringify(message.data)
+          );
+          return;
+        }
+
+        receivedTransactions.forEach((transaction: Transaction) => {
+          try {
+            handleReceivedTransaction(transaction);
+            sendMessage(ws, message);
+          } catch (e) {
+            console.log(e.message);
+          }
+        });
+      }
+    }
+
     if (message.type == MessageType.BLOCKCHAIN) {
       // Check if this node recived message with this id
       // If not set it and resend to other nodes
@@ -72,7 +112,7 @@ const communicationHandler = (ws: WebSocket) => {
 
         // validate given blockchain
         const receivedBlocks: Block[] = JSONToObject<Block[]>(message.data);
-        console.log('Got blockchain with length of : ' + receivedBlocks.length)
+        console.log("Got blockchain with length of : " + receivedBlocks.length);
         console.log(receivedBlocks);
 
         if (receivedBlocks === null) {
@@ -100,7 +140,7 @@ const communicationHandler = (ws: WebSocket) => {
                 type: MessageType.QUERY_CHAIN,
                 data: null,
                 id: uuidv4(),
-              })
+              });
             } else {
               console.log("Replace chain");
               replaceChain(receivedBlocks);
@@ -152,8 +192,8 @@ export const broadcast = (message: Message) =>
   sockets.forEach((socket) => sendMessage(socket, message));
 
 const sendMessage = (ws: WebSocket, message: Message) => {
-  console.log('Sending message:')
-  console.log(message)
+  console.log("Sending message:");
+  console.log(message);
   ws.send(JSON.stringify(message));
 };
 
@@ -170,5 +210,12 @@ const responseLatestMsg = (): Message => ({
 const queryLatestBlockMsg = (): Message => ({
   type: MessageType.LATEST_BLOCK,
   id: uuidv4(),
-  data: null
+  data: null,
 });
+
+export const broadCastTransactionPool = () => {
+  const msg = responseTransactionPoolMsg();
+  messagesMap.set(msg.id, msg.data);
+
+  broadcast(msg);
+};

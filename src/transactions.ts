@@ -86,7 +86,7 @@ export const getCoinbaseTransaction = (
   txIn.txOutIndex = blockIndex;
 
   t.txIns = [txIn];
-  t.txOuts = [new TxOut(address, 50)];
+  t.txOuts = [new TxOut(address, 10)];
   t.id = getTransactionId(t);
   return t;
 };
@@ -131,5 +131,5 @@ const toHexString = (byteArray): string => {
 };
 
 export const getPublicKey = (aPrivateKey: string): string => {
-  return ec.keyFromPrivate(aPrivateKey, "hex").getPublic().encode("hex", true);
+  return ec.keyFromPrivate(aPrivateKey, "hex").getPublic("hex");
 };

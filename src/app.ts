@@ -16,7 +16,9 @@ import {
   generatenextBlockWithTransaction,
   getAccountBalance,
   getBlockchainBinary,
+  sendTransaction,
 } from "./blockchain";
+import { getTransactionPool } from "./transactionPool";
 
 const httpPort: number = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort: number = parseInt(process.env.P2P_PORT) || 6001;
@@ -67,6 +69,22 @@ const initHttpServer = (httpPort: number) => {
     res.send(newBlock);
   });
 
+  app.post("/api/sendTransaction", (req, res) => {
+    try {
+      const address = req.body.address;
+      const amount = req.body.amount;
+
+      if (address === undefined || amount === undefined) {
+        throw Error("invalid address or amount");
+      }
+      const resp = sendTransaction(address, amount);
+      res.send(resp);
+    } catch (e) {
+      console.log(e.message);
+      res.status(400).send(e.message);
+    }
+  });
+
   app.get("/api/balance", (req, res) => {
     const balance: number = getAccountBalance();
     res.send({ balance: balance });
@@ -85,6 +103,10 @@ const initHttpServer = (httpPort: number) => {
       console.log(e.message);
       res.status(400).send(e.message);
     }
+  });
+
+  app.get("/api/transactionPool", (req, res) => {
+    res.send(getTransactionPool());
   });
 
   app.listen(httpPort, () => {
