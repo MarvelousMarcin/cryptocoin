@@ -180,8 +180,21 @@ export const createTransaction = (
   return tx;
 };
 
-export const getBalance = (address, unspentTxOuts) => {
-  return unspentTxOuts
-    .filter((uTxO) => uTxO.address === address)
-    .reduce((sum, uTxO) => sum + uTxO.amount, 0);
+const findUnspentTxOuts = (
+  ownerAddress: string,
+  unspentTxOuts: UnspentTxOut[]
+) => {
+  return _.filter(
+    unspentTxOuts,
+    (uTxO: UnspentTxOut) => uTxO.address === ownerAddress
+  );
+};
+
+export const getBalance = (
+  address: string,
+  unspentTxOuts: UnspentTxOut[]
+): number => {
+  return _(findUnspentTxOuts(address, unspentTxOuts))
+    .map((uTxO: UnspentTxOut) => uTxO.amount)
+    .sum();
 };
