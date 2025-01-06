@@ -17,6 +17,7 @@ import {
   getAccountBalance,
   getBlockchainBinary,
   sendTransaction,
+  startMining
 } from "./blockchain";
 import { getTransactionPool } from "./transactionPool";
 
@@ -64,9 +65,13 @@ const initHttpServer = (httpPort: number) => {
   });
 
   app.post("/api/mine", (req, res) => {
-    console.log(req.body.data);
     const newBlock: Block = generateNextBlock();
     res.send(newBlock);
+  });
+
+  app.post("/api/mine/start", (req, res) => {
+    startMining(req.body.n);
+    res.send();
   });
 
   app.post("/api/sendTransaction", (req, res) => {

@@ -19,6 +19,7 @@ import {
   getTransactionPool,
   updateTransactionPool,
 } from "./transactionPool";
+import { Worker } from 'worker_threads';
 
 const hexToBinary = (s: string): string => {
   let ret: string = "";
@@ -49,6 +50,57 @@ const hexToBinary = (s: string): string => {
   }
   return ret;
 };
+
+const worker:Worker = new Worker('./dist/blockWorker.js');
+
+worker.on('message', (result) => {
+  console.log('Getting message from worker')
+  if (result.success) {
+    if (addBlock(result.block)) {
+      broadcastLatest();
+      return result.block;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+});
+
+worker.on('error', (err) => {
+  console.error('Worker error:', err);
+});
+
+worker.on('exit', (code) => {
+  if (code !== 0) {
+    console.error(`Worker stopped with exit code ${code}`);
+  }
+});
+
+export const startMining = (n:number) => {
+  const coinbaseTx: Transaction = getCoinbaseTransaction(
+    getPublicFromWallet(),
+    getLatestBlock().index + 1
+  );
+  const blockData: Transaction[] = [coinbaseTx].concat(getTransactionPool());
+
+  const previousBlock: Block = getLatestBlock();
+  const difficulty: number = getDifficulty(getBlockchain());
+  const nextIndex: number = previousBlock.index + 1;
+  const nextTimestamp: number = getCurrentTimestamp();
+
+  worker.postMessage({
+    isMining: true,
+    blocksToMine: n,
+    blockData: {
+      index: nextIndex,
+      previousHash: previousBlock.hash,
+      timestamp: nextTimestamp,
+      data: blockData,
+      difficulty: difficulty
+    }
+  });
+}
 
 export const COINBASE_AMOUNT: number = 50;
 
@@ -205,12 +257,36 @@ export const addBlock = (newBlock: Block) => {
       return false;
     } else {
       blockchain.push(newBlock);
+      updateWorkerData();
       setUnspentTxOuts(retVal);
       updateTransactionPool(unspentTxOuts);
       return true;
     }
   }
 };
+
+const updateWorkerData = () => {
+  const coinbaseTx: Transaction = getCoinbaseTransaction(
+    getPublicFromWallet(),
+    getLatestBlock().index + 1
+  );
+  const blockData: Transaction[] = [coinbaseTx].concat(getTransactionPool());
+
+  const previousBlock: Block = getLatestBlock();
+  const difficulty: number = getDifficulty(getBlockchain());
+  const nextIndex: number = previousBlock.index + 1;
+  const nextTimestamp: number = getCurrentTimestamp();
+
+  worker.postMessage({
+    blockData: {
+      'index': nextIndex,
+      'previousHash': previousBlock.hash,
+      'timestamp': nextTimestamp,
+      'data': blockData,
+      'difficulty': difficulty
+    }
+  });
+}
 
 const getCurrentTimestamp = (): number =>
   Math.round(new Date().getTime() / 1000);
@@ -287,7 +363,7 @@ export const generatenextBlockWithTransaction = (
   return generateRawNextBlock(blockData);
 };
 
-const findBlock = (
+export const findBlock = (
   index: number,
   previousHash: string,
   timestamp: number,
@@ -328,9 +404,9 @@ const hasValidHash = (block: Block): boolean => {
   if (!hashMatchesDifficulty(block.hash, block.difficulty)) {
     console.log(
       "block difficulty not satisfied. Expected: " +
-        block.difficulty +
-        "got: " +
-        block.hash
+      block.difficulty +
+      "got: " +
+      block.hash
     );
   }
   return true;
@@ -388,7 +464,7 @@ export const replaceChain = (newBlocks: Block[]) => {
   if (
     validChain &&
     getAccumulatedDifficulty(newBlocks) >
-      getAccumulatedDifficulty(getBlockchain())
+    getAccumulatedDifficulty(getBlockchain())
   ) {
     console.log(
       "Received blockchain is valid. Replacing current blockchain with received blockchain"
@@ -397,6 +473,7 @@ export const replaceChain = (newBlocks: Block[]) => {
     setUnspentTxOuts(aUnspentTxOuts);
     updateTransactionPool(unspentTxOuts);
     broadcastLatest();
+    updateWorkerData();
   } else {
     console.log("Received blockchain invalid");
   }
