@@ -51,33 +51,37 @@ const hexToBinary = (s: string): string => {
   return ret;
 };
 
-const worker:Worker = new Worker('./dist/blockWorker.js');
+let worker: Worker | null = null;
 
-worker.on('message', (result) => {
-  console.log('Getting message from worker')
-  if (result.success) {
-    if (addBlock(result.block)) {
-      broadcastLatest();
-      return result.block;
-    } else {
-      return null;
-    }
-  } else {
-    return null;
+export const startMining = (n: number) => {
+  if (!worker) {
+    worker = new Worker('./dist/blockWorker.js');
+
+    worker.on('message', (result) => {
+      console.log('Getting message from worker')
+      if (result.success) {
+        if (addBlock(result.block)) {
+          broadcastLatest();
+          return result.block;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    });
+
+    worker.on('error', (err) => {
+      console.error('Worker error:', err);
+    });
+
+    worker.on('exit', (code) => {
+      if (code !== 0) {
+        console.error(`Worker stopped with exit code ${code}`);
+      }
+    });
   }
-});
 
-worker.on('error', (err) => {
-  console.error('Worker error:', err);
-});
-
-worker.on('exit', (code) => {
-  if (code !== 0) {
-    console.error(`Worker stopped with exit code ${code}`);
-  }
-});
-
-export const startMining = (n:number) => {
   const coinbaseTx: Transaction = getCoinbaseTransaction(
     getPublicFromWallet(),
     getLatestBlock().index + 1
@@ -101,6 +105,20 @@ export const startMining = (n:number) => {
     }
   });
 }
+
+export const stopMining = () => {
+  if (worker) {
+    worker.terminate();
+    worker = null;
+  }
+}
+
+// setInterval(() => {
+//   const used = process.memoryUsage();
+//   console.log(
+//     `Memory Usage: RSS=${(used.rss / 1024 / 1024).toFixed(2)} MB, HeapUsed=${(used.heapUsed / 1024 / 1024).toFixed(2)} MB , HeapTotal=${(used.heapTotal / 1024 / 1024).toFixed(2)} MB , external=${(used.external / 1024 / 1024).toFixed(2)} MB`
+//   );
+// }, 5000);
 
 export const COINBASE_AMOUNT: number = 50;
 
@@ -266,6 +284,9 @@ export const addBlock = (newBlock: Block) => {
 };
 
 const updateWorkerData = () => {
+  if (!worker) {
+    return;
+  }
   const coinbaseTx: Transaction = getCoinbaseTransaction(
     getPublicFromWallet(),
     getLatestBlock().index + 1

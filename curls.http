@@ -69,6 +69,13 @@ Content-Type: application/json
 }
 
 ###
+POST {{node1}}/api/mine/stop
+Content-Type: application/json
+
+{
+}
+
+###
 GET {{node1}}/api/balance
 Content-Type: application/json
 
